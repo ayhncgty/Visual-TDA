@@ -40,6 +40,72 @@ from sklearn.metrics import pairwise_distances
 from matplotlib.animation import FuncAnimation
 from IPython.display import HTML
 
+## PLOT BARCODES    
+def barcode_plot(diag, r=10, figsize=(5, 5), x_lim=[0, 5], y_lim=[-0.1, 2], pad=0.1, bar_height=0.1, ax=None, color='k-', label=None,aspect = True):
+    """
+    Plots a barcode plot for the given persistence diagram.
+    
+    INPUT:
+    diag : numpy array
+        Persistence diagram represented as a numpy array.
+    
+    PARAMETERS:
+    - r : float
+        Scale. Will plot until x = r.
+    - figsize : tuple
+        Size of the figure.
+    - x_lim : list
+        X-axis limits.
+    - y_lim : list
+        Y-axis limits.
+    - pad : float
+        Padding between bars.
+    - bar_height : float
+        Height of each bar in the barcode plot.
+    - ax : matplotlib.axes._axes.Axes
+        Matplotlib axes object.
+    - color : str
+        Color and line style of the bars.
+    - label : str
+        Label to annotate the bars for the legend.
+    - aspect: Boolean. If true, the axes will be equally scaled
+    """
+    
+    y_position = np.arange(0, len(diag) * (bar_height + pad), bar_height + pad)
+    
+    # Prepare the diagram according to the given scale.
+    new_diag = diag.copy()
+    
+    for i in range(len(diag)):
+        b = diag[i][0]
+        d = diag[i][1]
+    
+        if b < r and r <= d:
+            new_diag[i][0] = b
+            new_diag[i][1] = r
+        elif r <= b:
+            new_diag[i][0] = 0
+            new_diag[i][1] = 0
+    
+    # Filter out rows where all elements are zero
+    new_diag = new_diag[np.any(new_diag != 0, axis=1)]
+    
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
+    
+    x_low, x_up = x_lim[0], x_lim[1]
+    y_low, y_up = y_lim[0], y_lim[1]
+    
+    ax.set_xlim(x_low, x_up)
+    ax.set_ylim(y_low, y_up)
+    ax.set_yticks([])
+    
+    for (b, d), y in zip(new_diag, y_position):
+        ax.plot([b, d], [y, y], color, linewidth=3, label=label if label and y == 0 else "")
+    
+    if aspect:
+        ax.set_aspect('equal')
+
 def generate_polygon_positions(num_sides, radius=1):
     """
     Generate the positions of the nodes of a regular polygon.
